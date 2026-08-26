@@ -52,17 +52,47 @@ server**. Give it a second, then refresh.
 
 Do them in order — each gives you something the next one needs.
 
-| # | Function | Done when |
-|---|---|---|
-| 1 | `mapProduct` | — (nothing visible yet; TODO(2) proves it) |
-| 2 | `listProducts` | Products page lists your sandbox products at the right prices |
-| 3 | `createProduct` | **Add product** creates one, and it appears in the list |
-| 4 | `mapPaymentLink` | — |
-| 5 | `listPaymentLinks` | Payment links page shows links with the right item and amount |
-| 6 | `createPaymentLink` | **New payment link** creates one you can open and pay |
-| 7 | `mapCharge` | — |
-| 8 | `listTransactions` | Your test payment appears, with item name, fee and net |
-| 9 | `refundTransaction` | **Refund** in the drawer flips the row to Refunded |
+All nine are in **`stripe-api.js`**. Line numbers are where each one starts in
+the untouched template — they shift as you write, so to find them at any point:
+
+```bash
+grep -n "TODO(" stripe-api.js
+```
+
+| # | Where | Function | Done when |
+|---|---|---|---|
+| 1 | `stripe-api.js:49` | `mapProduct` | — (nothing visible yet; TODO(2) proves it) |
+| 2 | `stripe-api.js:151` | `listProducts` | Products page lists your sandbox products at the right prices |
+| 3 | `stripe-api.js:179` | `createProduct` | **Add product** creates one, and it appears in the list |
+| 4 | `stripe-api.js:106` | `mapPaymentLink` | — |
+| 5 | `stripe-api.js:261` | `listPaymentLinks` | Payment links page shows links with the right item and amount |
+| 6 | `stripe-api.js:291` | `createPaymentLink` | **New payment link** creates one you can open and pay |
+| 7 | `stripe-api.js:73` | `mapCharge` | — |
+| 8 | `stripe-api.js:205` | `listTransactions` | Your test payment appears, with item name, fee and net |
+| 9 | `stripe-api.js:244` | `refundTransaction` | **Refund** in the drawer flips the row to Refunded |
+
+They're grouped by kind in the file, not by task number — all three mappers sit
+together near the top, the six route handlers below them. So you'll jump around
+rather than working straight down.
+
+### Files you read but never edit
+
+Each mapper's field list comes from a table component. When a column looks
+wrong, open the one that renders it:
+
+| Mapper | Read this to see what the row needs |
+|---|---|
+| `mapProduct` | `src/pages/products/components/ProductTable.jsx` |
+| `mapPaymentLink` | `src/pages/payment-links/components/PaymentLinkTable.jsx` |
+| `mapCharge` | `src/pages/transactions/components/TransactionTable.jsx`<br>`src/pages/transactions/components/TransactionDrawer.jsx` |
+
+Two more worth knowing about, though nothing in them needs changing:
+
+- `src/store/StoreProvider.jsx` — calls the API and holds the results. It also
+  derives `initials` and `sold`, which is why your mappers don't.
+- `src/styles/theme.js` — `STATUS_CHIP` lists the exact status strings that
+  colour a chip. If a chip renders grey when you expected green, your mapper
+  spelled the status differently to what's in here.
 
 A mapper on its own shows you nothing — it's the list call right after it that
 puts rows on screen. Expect to go back and fix the mapper once you can see it.

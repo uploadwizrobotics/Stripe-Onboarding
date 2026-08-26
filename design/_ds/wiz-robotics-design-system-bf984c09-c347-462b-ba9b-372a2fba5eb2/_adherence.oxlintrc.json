@@ -1,0 +1,338 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**",
+              "components/decor/**",
+              "components/site/**",
+              "ui_kits/website/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Poppins|Nunito Sans|Space Mono))/i]",
+        "message": "Font not provided by the design system. Available: Poppins, Nunito Sans, Space Mono."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute > JSXIdentifier[name!=/^(?:color|soft|children|key|ref|className|style|children)$/]",
+        "message": "<Badge> doesn't accept that prop. Declared props: color, soft, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='color'] > Literal[value!=/^(?:purple|orange|neutral)$/]",
+        "message": "<Badge> color must be one of 'purple' | 'orange' | 'neutral'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BinaryBlock'] > JSXAttribute > JSXIdentifier[name!=/^(?:rows|cols|color|fontSize|key|ref|className|style|children)$/]",
+        "message": "<BinaryBlock> doesn't accept that prop. Declared props: rows, cols, color, fontSize."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|iconLeft|iconRight|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, iconLeft, iconRight, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|accent|secondary|ghost)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'accent' | 'secondary' | 'ghost'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Card'] > JSXAttribute > JSXIdentifier[name!=/^(?:image|imageAlt|badge|title|children|footer|key|ref|className|style|children)$/]",
+        "message": "<Card> doesn't accept that prop. Declared props: image, imageAlt, badge, title, children, footer."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='NavBar'] > JSXAttribute > JSXIdentifier[name!=/^(?:brand|links|utility|lang|cta|onCta|key|ref|className|style|children)$/]",
+        "message": "<NavBar> doesn't accept that prop. Declared props: brand, links, utility, lang, cta, onCta."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PhotoFrame'] > JSXAttribute > JSXIdentifier[name!=/^(?:src|alt|tilt|width|ratio|key|ref|className|style|children)$/]",
+        "message": "<PhotoFrame> doesn't accept that prop. Declared props: src, alt, tilt, width, ratio."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Sparkle'] > JSXAttribute > JSXIdentifier[name!=/^(?:size|color|key|ref|className|style|children)$/]",
+        "message": "<Sparkle> doesn't accept that prop. Declared props: size, color."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SquareCluster'] > JSXAttribute > JSXIdentifier[name!=/^(?:size|gap|key|ref|className|style|children)$/]",
+        "message": "<SquareCluster> doesn't accept that prop. Declared props: size, gap."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "Badge": {
+        "replaces": []
+      },
+      "BinaryBlock": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "Card": {
+        "replaces": []
+      },
+      "NavBar": {
+        "replaces": []
+      },
+      "PhotoFrame": {
+        "replaces": []
+      },
+      "Sparkle": {
+        "replaces": []
+      },
+      "SquareCluster": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--black",
+      "--border-brand",
+      "--border-default",
+      "--border-subtle",
+      "--border-width",
+      "--border-width-strong",
+      "--brand-accent",
+      "--brand-accent-hover",
+      "--brand-primary",
+      "--brand-primary-hover",
+      "--brand-primary-press",
+      "--container-max",
+      "--content-max",
+      "--dur-base",
+      "--dur-fast",
+      "--dur-slow",
+      "--ease-bounce",
+      "--ease-standard",
+      "--focus-ring",
+      "--font-body",
+      "--font-display",
+      "--font-mono",
+      "--fs-body",
+      "--fs-body-lg",
+      "--fs-display-lg",
+      "--fs-display-md",
+      "--fs-display-xl",
+      "--fs-h1",
+      "--fs-h2",
+      "--fs-h3",
+      "--fs-sm",
+      "--fs-xs",
+      "--fw-bold",
+      "--fw-extrabold",
+      "--fw-regular",
+      "--fw-semibold",
+      "--gray-100",
+      "--gray-200",
+      "--gray-300",
+      "--gray-400",
+      "--gray-50",
+      "--gray-500",
+      "--gray-700",
+      "--gray-900",
+      "--lh-normal",
+      "--lh-snug",
+      "--lh-tight",
+      "--ls-tight",
+      "--ls-wide",
+      "--motif-orange",
+      "--motif-purple",
+      "--orange-200",
+      "--orange-300",
+      "--orange-400",
+      "--orange-500",
+      "--orange-600",
+      "--purple-100",
+      "--purple-200",
+      "--purple-300",
+      "--purple-400",
+      "--purple-50",
+      "--purple-500",
+      "--purple-600",
+      "--purple-700",
+      "--purple-800",
+      "--purple-900",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--radius-xl",
+      "--shadow-accent",
+      "--shadow-brand",
+      "--shadow-lg",
+      "--shadow-md",
+      "--shadow-sm",
+      "--shadow-xs",
+      "--space-0",
+      "--space-1",
+      "--space-10",
+      "--space-12",
+      "--space-16",
+      "--space-2",
+      "--space-20",
+      "--space-24",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-8",
+      "--surface-card",
+      "--surface-inverse",
+      "--surface-page",
+      "--surface-wash",
+      "--text-body",
+      "--text-heading",
+      "--text-link",
+      "--text-link-hover",
+      "--text-muted",
+      "--text-on-brand",
+      "--white"
+    ],
+    "tokenKinds": {
+      "--purple-50": "color",
+      "--purple-100": "color",
+      "--purple-200": "color",
+      "--purple-300": "color",
+      "--purple-400": "color",
+      "--purple-500": "color",
+      "--purple-600": "color",
+      "--purple-700": "color",
+      "--purple-800": "color",
+      "--purple-900": "color",
+      "--orange-200": "color",
+      "--orange-300": "color",
+      "--orange-400": "color",
+      "--orange-500": "color",
+      "--orange-600": "color",
+      "--black": "color",
+      "--gray-900": "color",
+      "--gray-700": "color",
+      "--gray-500": "color",
+      "--gray-400": "color",
+      "--gray-300": "color",
+      "--gray-200": "color",
+      "--gray-100": "color",
+      "--gray-50": "color",
+      "--white": "color",
+      "--brand-primary": "color",
+      "--brand-primary-hover": "color",
+      "--brand-primary-press": "color",
+      "--brand-accent": "color",
+      "--brand-accent-hover": "color",
+      "--text-heading": "font",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-on-brand": "font",
+      "--text-link": "font",
+      "--text-link-hover": "font",
+      "--surface-page": "color",
+      "--surface-wash": "color",
+      "--surface-card": "color",
+      "--surface-inverse": "color",
+      "--border-subtle": "color",
+      "--border-default": "color",
+      "--border-brand": "color",
+      "--focus-ring": "color",
+      "--motif-purple": "color",
+      "--motif-orange": "color",
+      "--font-display": "font",
+      "--font-body": "font",
+      "--font-mono": "font",
+      "--fs-display-xl": "spacing",
+      "--fs-display-lg": "spacing",
+      "--fs-display-md": "spacing",
+      "--fs-h1": "spacing",
+      "--fs-h2": "spacing",
+      "--fs-h3": "spacing",
+      "--fs-body-lg": "spacing",
+      "--fs-body": "spacing",
+      "--fs-sm": "spacing",
+      "--fs-xs": "spacing",
+      "--fw-regular": "other",
+      "--fw-semibold": "other",
+      "--fw-bold": "other",
+      "--fw-extrabold": "other",
+      "--lh-tight": "other",
+      "--lh-snug": "other",
+      "--lh-normal": "other",
+      "--ls-tight": "other",
+      "--ls-wide": "other",
+      "--space-0": "spacing",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-8": "spacing",
+      "--space-10": "spacing",
+      "--space-12": "spacing",
+      "--space-16": "spacing",
+      "--space-20": "spacing",
+      "--space-24": "spacing",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-xl": "radius",
+      "--radius-pill": "radius",
+      "--container-max": "spacing",
+      "--content-max": "spacing",
+      "--shadow-xs": "shadow",
+      "--shadow-sm": "shadow",
+      "--shadow-md": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-brand": "shadow",
+      "--shadow-accent": "shadow",
+      "--border-width": "other",
+      "--border-width-strong": "other",
+      "--ease-standard": "other",
+      "--ease-bounce": "other",
+      "--dur-fast": "other",
+      "--dur-base": "other",
+      "--dur-slow": "other"
+    },
+    "fontFamilies": [
+      "Nunito Sans",
+      "Poppins",
+      "Space Mono"
+    ]
+  }
+}

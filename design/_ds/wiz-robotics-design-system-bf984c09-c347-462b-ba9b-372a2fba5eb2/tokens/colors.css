@@ -1,0 +1,65 @@
+/* WIZ Robotics — Color tokens
+   Base palette sampled from the brand swatches + hero screenshot.
+   Two brand hues: Purple (primary) and Orange (energy/accent). */
+
+:root {
+  /* ---- Purple scale (primary) ---- */
+  --purple-50:  #F9F5FF;  /* lavender wash — section & hero backgrounds */
+  --purple-100: #F4EBFF;
+  --purple-200: #E9D7FE;
+  --purple-300: #D6BBFB;
+  --purple-400: #9E77ED;  /* light accent purple */
+  --purple-500: #7F56D9;  /* mid purple */
+  --purple-600: #6941C6;  /* PRIMARY brand purple */
+  --purple-700: #5B37B0;
+  --purple-800: #4A2E8C;  /* deep purple */
+  --purple-900: #3B2470;  /* header / top bar */
+
+  /* ---- Orange scale (accent) ---- */
+  --orange-200: #FFE2B8;
+  --orange-300: #FFC57A;  /* soft peach */
+  --orange-400: #FFA733;
+  --orange-500: #FF9100;  /* primary orange */
+  --orange-600: #FF6D00;  /* hot orange */
+
+  /* ---- Neutrals ---- */
+  --black:      #101010;
+  --gray-900:   #1D1B22;
+  --gray-700:   #475467;
+  --gray-500:   #667085;
+  --gray-400:   #98A2B3;
+  --gray-300:   #D0D5DD;  /* borders */
+  --gray-200:   #E4E7EC;
+  --gray-100:   #F2F4F7;
+  --gray-50:    #F9FAFB;
+  --white:      #FFFFFF;
+
+  /* ---- Semantic aliases ---- */
+  --brand-primary:        var(--purple-600);
+  --brand-primary-hover:  var(--purple-700);
+  --brand-primary-press:  var(--purple-800);
+  --brand-accent:         var(--orange-500);
+  --brand-accent-hover:   var(--orange-600);
+
+  --text-heading:   var(--black);
+  --text-body:      var(--gray-700);
+  --text-muted:     var(--gray-500);
+  --text-on-brand:  var(--white);
+  --text-link:      var(--purple-600);
+  --text-link-hover:var(--purple-800);
+
+  --surface-page:      var(--white);
+  --surface-wash:      var(--purple-50);   /* soft lavender panels */
+  --surface-card:      var(--white);
+  --surface-inverse:   var(--purple-900);  /* dark header bar */
+
+  --border-subtle:  var(--gray-200);
+  --border-default: var(--gray-300);
+  --border-brand:   var(--purple-300);
+
+  --focus-ring:     var(--purple-400);
+
+  /* decorative motif tints (binary rain, squares, sparkles) */
+  --motif-purple:   var(--purple-400);
+  --motif-orange:   var(--orange-500);
+}

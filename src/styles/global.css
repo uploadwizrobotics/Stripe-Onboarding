@@ -1,0 +1,55 @@
+/* WIZ Robotics design-system tokens */
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './tokens/effects.css';
+
+/* Reset + the few things inline styles can't express:
+   pseudo-classes, keyframes, and scrollbars. */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--gray-100);
+  font-family: var(--font-body);
+  color: var(--gray-700);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--purple-700); text-decoration: none; }
+a:hover { color: var(--purple-800); }
+
+input, select, button { font-family: var(--font-body); }
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* --- hover states (inline styles cannot express :hover) --- */
+.hv-row:hover { background: var(--gray-50); }
+.hv-nav:hover { background: var(--gray-100); }
+.hv-primary:hover { background: var(--purple-700); }
+.hv-ghost:hover { background: var(--gray-50); }
+.hv-link:hover { background: var(--purple-50); border-color: var(--purple-300); }
+.hv-danger:hover { background: var(--orange-200); }
+button:disabled { cursor: not-allowed; }
+
+@keyframes v2Rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes v2Slide {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}

@@ -1,10 +1,22 @@
 # Exercise — wire the admin up to Stripe
 
-The app is finished. The Stripe calls behind it are not.
+The app is finished. Nothing behind it is.
 
-Everything you need to write lives in **one file: `stripe-api.js`**. There are
-six `TODO`s. No React, no CSS, no build config — if a page looks wrong, the
-cause is in that file.
+Everything you write lives in **one file: `stripe-api.js`** — nine `TODO`s. No
+React, no CSS, no build config. If a page looks wrong, the cause is in that
+file.
+
+Two jobs, alternating:
+
+1. **Fetch it from Stripe** — get the right objects back, with the right fields
+   filled in.
+2. **Shape it into a row** — turn a Stripe object into exactly what the table
+   renders.
+
+The tables are already written and you don't change them. That makes them your
+spec: `ProductTable.jsx` reads `p.price`, so `mapProduct` has to produce
+`price`. Read the table, then write the mapper, then write the call that feeds
+it.
 
 ## Setup
 
@@ -38,19 +50,26 @@ server**. Give it a second, then refresh.
 
 ## The tasks
 
-Do them in this order — each one gives you something the next needs.
+Do them in order — each gives you something the next one needs.
 
 | # | Function | Done when |
 |---|---|---|
-| 1 | `listProducts` | Products page lists your sandbox products at the right prices |
-| 2 | `createProduct` | **Add product** creates one, and it appears in the list |
-| 3 | `listPaymentLinks` | Payment links page lists links with the right item and amount |
-| 4 | `createPaymentLink` | **New payment link** creates one you can actually open and pay |
-| 5 | `listTransactions` | Your test payment appears, with item name, fee and net |
-| 6 | `refundTransaction` | **Refund** in the drawer flips the row to Refunded |
+| 1 | `mapProduct` | — (nothing visible yet; TODO(2) proves it) |
+| 2 | `listProducts` | Products page lists your sandbox products at the right prices |
+| 3 | `createProduct` | **Add product** creates one, and it appears in the list |
+| 4 | `mapPaymentLink` | — |
+| 5 | `listPaymentLinks` | Payment links page shows links with the right item and amount |
+| 6 | `createPaymentLink` | **New payment link** creates one you can open and pay |
+| 7 | `mapCharge` | — |
+| 8 | `listTransactions` | Your test payment appears, with item name, fee and net |
+| 9 | `refundTransaction` | **Refund** in the drawer flips the row to Refunded |
 
-Between 4 and 5, take a real test payment: open the link and pay with card
-`4242 4242 4242 4242`, any future expiry, any CVC, any postal code.
+A mapper on its own shows you nothing — it's the list call right after it that
+puts rows on screen. Expect to go back and fix the mapper once you can see it.
+
+**Between 6 and 8, take a real test payment.** Open the link you just made and
+pay with card `4242 4242 4242 4242`, any future expiry, any CVC, any postal
+code. Without that there's nothing for TODO(8) to list.
 
 ## How to tell you got it right
 
@@ -82,15 +101,20 @@ small sign you're on track.
 - **Stripe returns ids, not objects.** A charge's `balance_transaction`, a
   product's `default_price` — all ids until you `expand` them. Most of the
   "why is this blank?" moments come from here.
-- **Don't touch the `map*` functions.** They're written for you, and they define
-  exactly what each call must return. Read them first — they're the spec.
+- **Don't touch anything outside `stripe-api.js`.** The tables, the store and
+  the components are done. If a column is empty, the fix is in your mapper or
+  your call — never in the table.
 - **Don't fetch in a loop.** Anywhere you need two kinds of object, two list
   calls and a lookup table beat one call per row.
 
 ## Stuck
 
-Read the mapper for the thing you're building. `mapCharge` tells you a charge
-needs a fee, a net and an item name; that tells you what to go and fetch.
+Work backwards from the table. The Transactions table renders a Fee column, so
+`mapCharge` has to return `fee`, so the call feeding it has to fetch something
+that carries a fee. That chain — column, mapper, call — answers most of these.
+
+Then check the terminal. A thrown Stripe error is usually specific about which
+parameter it didn't like.
 
 The finished version is one command away:
 

@@ -96,6 +96,12 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
 
   const badRequest = (message) => Object.assign(new Error(message), { statusCode: 400 });
 
+  /* Placeholder for the TODOs below — delete each one as you implement it. */
+  const notImplemented = (n) =>
+    Object.assign(new Error(`Not implemented yet — see TODO(${n}) in stripe-api.js`), {
+      statusCode: 501,
+    });
+
   /* ------------------------------ Routes ---------------------------------- */
 
   const app = express();
@@ -120,15 +126,26 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
     }
   };
 
+  /**
+   * TODO(1) — list products
+   *
+   * Return an array of every ACTIVE product, each passed through mapProduct().
+   * Cap the result at LIMIT.
+   *
+   * mapProduct() reads `product.default_price.unit_amount`, so the price has to
+   * come back as an object, not an id.
+   *
+   * Symptoms if it's not quite right:
+   *   · every price renders $0.00      → the price came back as an id string
+   *   · dozens of unfamiliar products  → archived ones are included by default
+   *
+   * Docs: https://stripe.com/docs/api/products/list
+   *       https://stripe.com/docs/api/expanding_objects
+   */
   app.get(
     '/api/products',
     route(async () => {
-      const products = await stripe.products.list({
-        limit: LIMIT,
-        active: true, // archived products stay out of the admin
-        expand: ['data.default_price'],
-      });
-      return products.data.map(mapProduct);
+      return []; // TODO(1)
     }),
   );
 
@@ -138,68 +155,109 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
       const { name, blurb, price, sku } = req.body;
       if (!name?.trim()) throw badRequest('A product name is required.');
 
-      const product = await stripe.products.create({
-        name: name.trim(),
-        description: blurb?.trim() || undefined,
-        active: true, // the admin only lists active products
-        metadata: sku?.trim() ? { sku: sku.trim() } : {},
-        default_price_data: { currency: CURRENCY, unit_amount: Number(price) || 0 },
-        expand: ['default_price'],
-      });
-
-      return mapProduct(product);
+      // TODO(2) — create the product in Stripe and return mapProduct(product).
+      //
+      // In Stripe a product and its price are two different objects. Creating a
+      // product alone gives you something with no amount attached, which this
+      // admin can't turn into a payment link. There is a way to create both in
+      // one call.
+      //
+      // Set on the new product:
+      //   name         `name`, trimmed
+      //   description  `blurb` (omit if empty)
+      //   metadata.sku `sku`   (omit if empty)
+      //   amount       `price` — already in cents — in CURRENCY
+      //   active       true, so it shows up in TODO(1)'s list
+      //
+      // Remember mapProduct() needs the price expanded.
+      //
+      // Symptom if wrong: the product appears with $0.00, or the toast reports
+      // a Stripe error.
+      //
+      // Docs: https://stripe.com/docs/api/products/create
+      //       https://stripe.com/docs/api/prices/create
+      throw notImplemented(2);
     }),
   );
 
-  /* A Payment Link charge carries no description — the product name lives on
-     the Checkout Session that produced it. Pull both and join on the payment
-     intent, rather than a lookup per row. */
-  const idOf = (value) => (typeof value === 'string' ? value : value?.id);
-
+  /**
+   * TODO(5) — list transactions
+   *
+   * Return an array of charges, each through mapCharge(charge, item), capped at
+   * LIMIT. Do this one AFTER you've taken a real test payment, so there's
+   * something to look at.
+   *
+   * Two things mapCharge() needs that a plain charge doesn't carry:
+   *
+   *   1. Stripe's fee and net. These live on the charge's balance transaction,
+   *      which comes back as an id unless you expand it.
+   *
+   *   2. The item name — the second argument. A charge made through a payment
+   *      link has NO description; the product name lives on the Checkout
+   *      Session that produced it. So fetch the sessions too (their line items
+   *      hold the name) and match each session to its charge. Both objects
+   *      reference the same payment intent — that's your join key.
+   *
+   *      Careful: depending on the call, `payment_intent` is sometimes an id
+   *      string and sometimes an object. Handle both.
+   *
+   *      Do it with two list calls and a lookup table, not one call per row.
+   *
+   * Symptoms if wrong:
+   *   · Fee and Net columns show —      → balance transaction not expanded
+   *   · Item column shows —, Sold is 0  → sessions not joined
+   *
+   * Docs: https://stripe.com/docs/api/charges/list
+   *       https://stripe.com/docs/api/checkout/sessions/list
+   */
   app.get(
     '/api/transactions',
     route(async () => {
-      const [charges, sessions] = await Promise.all([
-        stripe.charges.list({ limit: LIMIT, expand: ['data.balance_transaction'] }),
-        stripe.checkout.sessions.list({ limit: LIMIT, expand: ['data.line_items'] }),
-      ]);
-
-      const itemByIntent = new Map(
-        sessions.data
-          .filter((session) => session.payment_intent)
-          .map((session) => [
-            idOf(session.payment_intent),
-            session.line_items?.data?.[0]?.description,
-          ]),
-      );
-
-      return charges.data.map((charge) =>
-        mapCharge(charge, itemByIntent.get(idOf(charge.payment_intent))),
-      );
+      return []; // TODO(5)
     }),
   );
 
   app.post(
     '/api/transactions/:chargeId/refund',
     route(async (req) => {
-      await stripe.refunds.create({ charge: req.params.chargeId });
-
-      // Re-read so the response carries the updated status and settled fee.
-      const charge = await stripe.charges.retrieve(req.params.chargeId, {
-        expand: ['balance_transaction'],
-      });
-      return mapCharge(charge);
+      // TODO(6) — refund the charge in `req.params.chargeId`, then return the
+      // updated charge through mapCharge().
+      //
+      // Refunding doesn't hand back the charge, and the copy you already have
+      // is now stale — its refunded flag is still false. Re-read it so the row
+      // in the UI flips to "Refunded". Same expansion note as TODO(5) applies.
+      //
+      // Symptom if wrong: the toast says refunded but the row still reads
+      // "Succeeded" until you reload.
+      //
+      // Docs: https://stripe.com/docs/api/refunds/create
+      //       https://stripe.com/docs/api/charges/retrieve
+      throw notImplemented(6);
     }),
   );
 
+  /**
+   * TODO(3) — list payment links
+   *
+   * Return an array of payment links, each through mapPaymentLink(), capped at
+   * LIMIT.
+   *
+   * mapPaymentLink() reads the link's line items — its first line item's
+   * description and price. Those aren't included unless you ask for them.
+   *
+   * Watch out: Stripe refuses to expand more than 4 levels deep, and on a LIST
+   * call every path already starts with `data.`. If Stripe rejects your expand,
+   * count the dots — and note that the line item's own `description` is already
+   * the product name, so you may not need to go as deep as you think.
+   *
+   * Symptom if wrong: rows show "Payment link" and $0.00, or the request 400s.
+   *
+   * Docs: https://stripe.com/docs/api/payment-links/list
+   */
   app.get(
     '/api/payment-links',
     route(async () => {
-      const links = await stripe.paymentLinks.list({
-        limit: LIMIT,
-        expand: ['data.line_items'],
-      });
-      return links.data.map(mapPaymentLink);
+      return []; // TODO(3)
     }),
   );
 
@@ -209,29 +267,30 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
       const { productId, amount, quantity, customerName } = req.body;
       if (!productId) throw badRequest('Pick a product first.');
 
-      const product = await stripe.products.retrieve(productId, { expand: ['default_price'] });
-      const defaultPrice = product.default_price;
-
-      // The modal allows overriding the amount, so mint a price for this link
-      // when it differs from the product's default.
-      let priceId = defaultPrice?.id;
-      if (amount != null && amount !== defaultPrice?.unit_amount) {
-        const price = await stripe.prices.create({
-          product: productId,
-          currency: CURRENCY,
-          unit_amount: Number(amount),
-        });
-        priceId = price.id;
-      }
-      if (!priceId) throw badRequest('That product has no price to bill.');
-
-      const link = await stripe.paymentLinks.create({
-        line_items: [{ price: priceId, quantity: Math.max(1, Number(quantity) || 1) }],
-        metadata: customerName?.trim() ? { customer_name: customerName.trim() } : {},
-        expand: ['line_items'],
-      });
-
-      return mapPaymentLink(link);
+      // TODO(4) — create a payment link and return mapPaymentLink(link).
+      //
+      // This is the tricky one. A payment link bills a PRICE, not a product and
+      // not a raw number — so you cannot hand Stripe `amount` directly.
+      //
+      // The form lets someone override the amount, so:
+      //   · if `amount` matches the product's existing default price,
+      //     reuse that price
+      //   · if it differs, create a new price for that product at `amount`
+      //     in CURRENCY, and use that one
+      //   · if there's no price to use at all,
+      //     throw badRequest('That product has no price to bill.')
+      //
+      // Then create the link with that price and `quantity` (at least 1), and
+      // stash `customerName` in metadata as `customer_name` — mapPaymentLink()
+      // reads it back from there. mapPaymentLink() needs line items expanded.
+      //
+      // Symptom if wrong: the toast shows a Stripe error, or the new row shows
+      // the wrong amount.
+      //
+      // Docs: https://stripe.com/docs/api/payment-links/create
+      //       https://stripe.com/docs/api/prices/create
+      //       https://stripe.com/docs/api/products/retrieve
+      throw notImplemented(4);
     }),
   );
 

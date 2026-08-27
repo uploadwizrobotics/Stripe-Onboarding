@@ -54,7 +54,21 @@ npm run dev
 
 One process, one port. Open http://localhost:5173.
 
-## Try the full loop
+## Your job
+
+The API is empty. `stripe-api.js` has the setup, the error handling and one
+worked example route — but the six endpoints the app actually calls aren't
+written, so the first thing you'll see is an error, not a store.
+
+Building them is the point of this repo. Each has a `TODO` block with the spec,
+the Stripe docs link, and a warning about the part that bites. Start with
+`GET /api/products`; the first one working proves the whole chain.
+
+Read `docs/api/standard.md` first — it has the row shapes you're aiming for.
+
+## Then try the full loop
+
+Once the endpoints are in:
 
 1. **Products → Add product.** It's created in your Stripe sandbox — refresh the
    Dashboard and it's there.
@@ -95,8 +109,8 @@ docs/api/standard.md     how the two halves fit, and how to add an endpoint
 - **Endpoints live in `stripe-api.js`.** Every call is the same SDK and the same
   method names as the Stripe docs. See `docs/api/standard.md` for how to add
   one.
-- **Stripe field names stop at the server.** Routes return rows already mapped
-  for the tables, so no `unit_amount` or `balance_transaction` in React.
+- **Stripe field names stop at the server.** Routes must return rows already
+  mapped for the tables — no `unit_amount` or `balance_transaction` in React.
 - **Sold count** is derived by matching charge descriptions to product names —
   Stripe has no per-product sales counter.
 - **Payment link status** is Stripe's `active` flag, not paid/unpaid. A link can

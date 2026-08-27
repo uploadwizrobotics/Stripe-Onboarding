@@ -38,16 +38,30 @@ const product = await stripe.products.create({ name: 'Gold Plan' });
 Only the setup lines differ. Method names, arguments and response shapes are
 exactly what the docs say.
 
-## Exercise: the mapping
+## Exercise: build the six endpoints
 
-The routes in `stripe-api.js` return Stripe's raw objects right now, so the UI
-is broken — $0.00 prices, blank names, filter chips that match nothing. Writing
-the mapping is the exercise.
+`stripe-api.js` has no routes in it. The React app calls six endpoints that
+don't exist, so every request falls through to the catch-all 404 and the UI
+shows an error instead of a store. Building them is the exercise.
 
-A Stripe object has dozens of fields; a table row has six. Work out which ones,
-find where each lives, and write the function that converts one to the other.
-Inspect the raw JSON at `http://localhost:5173/api/products` (and
-`/api/transactions`, `/api/payment-links`) while `npm run dev` is running.
+Each endpoint is three pieces of work:
+
+| | |
+|---|---|
+| **Register the route** | `app.get(path, route(async (req) => { … }))` — `route()` is written for you, at the top of the file |
+| **Call Stripe** | the docs link in each TODO block shows the call |
+| **Map the response** | Stripe's object → the row the table renders |
+
+The paths are fixed — `src/api/stripeApi.js` already fetches them, so they have
+to match exactly. `/api/health` is left in as a worked example of the shape.
+
+**A good way in.** Register one route that returns Stripe's raw data with no
+mapping at all, then open `http://localhost:5173/api/products` and read what
+comes back. Now you're mapping something real instead of guessing from the
+docs. Repeat per endpoint.
+
+The mapping is the part people underestimate. A Stripe object has dozens of
+fields; a table row has six.
 
 These are the shapes to hit. Every key is read by a component, so a missing one
 renders as blank or `NaN`.

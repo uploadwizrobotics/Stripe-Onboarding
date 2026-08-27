@@ -120,9 +120,10 @@ You can also hit the API directly, without the UI:
 curl -s localhost:5173/api/products | jq
 ```
 
-`npm run lint` will warn about three unused variables until TODO(4) is done —
-they're destructured for you, waiting to be used. The warnings going away is a
-small sign you're on track.
+`npm run lint` reports about 17 unused-variable warnings on the untouched
+template — `stripe`, `LIMIT`, every mapper parameter. Nothing is broken; they're
+things waiting to be used. They disappear one by one as you implement, so the
+count dropping is a rough progress bar.
 
 ## Rules of thumb
 

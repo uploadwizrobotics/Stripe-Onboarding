@@ -66,6 +66,21 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
    * product expanded it. Fall back to 0 rather than crashing.
    */
   const mapProduct = (product) => {
+    // ────────────────────────────────────────────────────────────────────
+    // ANSWER KEY — delete this block and write it yourself
+    // ────────────────────────────────────────────────────────────────────
+    // const price = product.default_price;
+    // const hasPrice = price && typeof price === 'object';
+    //
+    // return {
+    //   id: product.id,
+    //   name: product.name,
+    //   blurb: product.description || '',
+    //   sku: product.metadata?.sku || '',
+    //   price: hasPrice ? (price.unit_amount ?? 0) : 0,
+    //   status: product.active ? 'Active' : 'Draft',
+    // };
+    // ────────────────────────────────────────────────────────────────────
     throw notImplemented(1);
   };
 
@@ -99,6 +114,31 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
    * for null, and 0 would be a lie.
    */
   const mapCharge = (charge, item) => {
+    // ────────────────────────────────────────────────────────────────────
+    // ANSWER KEY — delete this block and write it yourself
+    // ────────────────────────────────────────────────────────────────────
+    // const balance = charge.balance_transaction;
+    // const settled = balance && typeof balance === 'object';
+    // const card = charge.payment_method_details?.card;
+    //
+    // let status = 'Pending';
+    // if (charge.refunded) status = 'Refunded';
+    // else if (charge.status === 'succeeded') status = 'Succeeded';
+    // else if (charge.status === 'failed') status = 'Failed';
+    //
+    // return {
+    //   id: charge.id,
+    //   customer: charge.billing_details?.name || 'Guest checkout',
+    //   email: charge.billing_details?.email || '—',
+    //   item: item || charge.description || '—',
+    //   gross: charge.amount,
+    //   fee: settled ? balance.fee : null,
+    //   net: settled ? balance.net : null,
+    //   status,
+    //   date: new Date(charge.created * 1000).toISOString(),
+    //   card: card ? `${card.brand} · ${card.last4}` : '—',
+    // };
+    // ────────────────────────────────────────────────────────────────────
     throw notImplemented(7);
   };
 
@@ -119,6 +159,21 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
    * their absence without crashing.
    */
   const mapPaymentLink = (link) => {
+    // ────────────────────────────────────────────────────────────────────
+    // ANSWER KEY — delete this block and write it yourself
+    // ────────────────────────────────────────────────────────────────────
+    // const lineItem = link.line_items?.data?.[0];
+    // const price = lineItem?.price;
+    //
+    // return {
+    //   id: link.id,
+    //   url: link.url,
+    //   item: lineItem?.description || 'Payment link',
+    //   amount: (price?.unit_amount ?? 0) * (lineItem?.quantity ?? 1),
+    //   customer: link.metadata?.customer_name || '—',
+    //   status: link.active ? 'Active' : 'Inactive',
+    // };
+    // ────────────────────────────────────────────────────────────────────
     throw notImplemented(4);
   };
 
@@ -166,6 +221,16 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
   app.get(
     '/api/products',
     route(async () => {
+      // ────────────────────────────────────────────────────────────────────
+      // ANSWER KEY — delete this block and write it yourself
+      // ────────────────────────────────────────────────────────────────────
+      // const products = await stripe.products.list({
+      //   limit: LIMIT,
+      //   active: true,
+      //   expand: ['data.default_price'],
+      // });
+      // return products.data.map(mapProduct);
+      // ────────────────────────────────────────────────────────────────────
       return []; // TODO(2)
     }),
   );
@@ -197,6 +262,20 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
       //
       // Docs: https://stripe.com/docs/api/products/create
       //       https://stripe.com/docs/api/prices/create
+      // ────────────────────────────────────────────────────────────────────
+      // ANSWER KEY — delete this block and write it yourself
+      // ────────────────────────────────────────────────────────────────────
+      // const product = await stripe.products.create({
+      //   name: name.trim(),
+      //   description: blurb?.trim() || undefined,
+      //   active: true,
+      //   metadata: sku?.trim() ? { sku: sku.trim() } : {},
+      //   default_price_data: { currency: CURRENCY, unit_amount: Number(price) || 0 },
+      //   expand: ['default_price'],
+      // });
+      //
+      // return mapProduct(product);
+      // ────────────────────────────────────────────────────────────────────
       throw notImplemented(3);
     }),
   );
@@ -234,6 +313,30 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
   app.get(
     '/api/transactions',
     route(async () => {
+      // ────────────────────────────────────────────────────────────────────
+      // ANSWER KEY — delete this block and write it yourself
+      // ────────────────────────────────────────────────────────────────────
+      // // payment_intent comes back as an id on one call and an object on the other
+      // const idOf = (value) => (typeof value === 'string' ? value : value?.id);
+      //
+      // const [charges, sessions] = await Promise.all([
+      //   stripe.charges.list({ limit: LIMIT, expand: ['data.balance_transaction'] }),
+      //   stripe.checkout.sessions.list({ limit: LIMIT, expand: ['data.line_items'] }),
+      // ]);
+      //
+      // const itemByIntent = new Map(
+      //   sessions.data
+      //     .filter((session) => session.payment_intent)
+      //     .map((session) => [
+      //       idOf(session.payment_intent),
+      //       session.line_items?.data?.[0]?.description,
+      //     ]),
+      // );
+      //
+      // return charges.data.map((charge) =>
+      //   mapCharge(charge, itemByIntent.get(idOf(charge.payment_intent))),
+      // );
+      // ────────────────────────────────────────────────────────────────────
       return []; // TODO(8)
     }),
   );
@@ -253,6 +356,17 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
       //
       // Docs: https://stripe.com/docs/api/refunds/create
       //       https://stripe.com/docs/api/charges/retrieve
+      // ────────────────────────────────────────────────────────────────────
+      // ANSWER KEY — delete this block and write it yourself
+      // ────────────────────────────────────────────────────────────────────
+      // await stripe.refunds.create({ charge: req.params.chargeId });
+      //
+      // // the copy you already have is stale — its refunded flag is still false
+      // const charge = await stripe.charges.retrieve(req.params.chargeId, {
+      //   expand: ['balance_transaction'],
+      // });
+      // return mapCharge(charge);
+      // ────────────────────────────────────────────────────────────────────
       throw notImplemented(9);
     }),
   );
@@ -278,6 +392,15 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
   app.get(
     '/api/payment-links',
     route(async () => {
+      // ────────────────────────────────────────────────────────────────────
+      // ANSWER KEY — delete this block and write it yourself
+      // ────────────────────────────────────────────────────────────────────
+      // const links = await stripe.paymentLinks.list({
+      //   limit: LIMIT,
+      //   expand: ['data.line_items'],
+      // });
+      // return links.data.map(mapPaymentLink);
+      // ────────────────────────────────────────────────────────────────────
       return []; // TODO(5)
     }),
   );
@@ -311,6 +434,31 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
       // Docs: https://stripe.com/docs/api/payment-links/create
       //       https://stripe.com/docs/api/prices/create
       //       https://stripe.com/docs/api/products/retrieve
+      // ────────────────────────────────────────────────────────────────────
+      // ANSWER KEY — delete this block and write it yourself
+      // ────────────────────────────────────────────────────────────────────
+      // const product = await stripe.products.retrieve(productId, { expand: ['default_price'] });
+      // const defaultPrice = product.default_price;
+      //
+      // let priceId = defaultPrice?.id;
+      // if (amount != null && amount !== defaultPrice?.unit_amount) {
+      //   const price = await stripe.prices.create({
+      //     product: productId,
+      //     currency: CURRENCY,
+      //     unit_amount: Number(amount),
+      //   });
+      //   priceId = price.id;
+      // }
+      // if (!priceId) throw badRequest('That product has no price to bill.');
+      //
+      // const link = await stripe.paymentLinks.create({
+      //   line_items: [{ price: priceId, quantity: Math.max(1, Number(quantity) || 1) }],
+      //   metadata: customerName?.trim() ? { customer_name: customerName.trim() } : {},
+      //   expand: ['line_items'],
+      // });
+      //
+      // return mapPaymentLink(link);
+      // ────────────────────────────────────────────────────────────────────
       throw notImplemented(6);
     }),
   );

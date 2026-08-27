@@ -10,7 +10,7 @@ import { ProductTable } from './components/ProductTable';
 import { AddProductModal } from './components/AddProductModal';
 
 export function ProductsPage() {
-  const { products, addProduct, loading, error, refresh } = useStore();
+  const { products, addProduct, sections } = useStore();
   const modal = useDisclosure();
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ export function ProductsPage() {
     navigate('/payment-links', { state: { productId: product.id } });
 
   const empty = (
-    <TableState loading={loading} error={error} onRetry={refresh}>
+    <TableState {...sections.products}>
       <EmptyState
         title="No products yet"
         body="Add your first one — it's created straight in your Stripe sandbox, then you can turn it into a payment link."

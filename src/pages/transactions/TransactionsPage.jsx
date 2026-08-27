@@ -15,7 +15,8 @@ import { TransactionDrawer } from './components/TransactionDrawer';
 const matchStatus = (transaction, filterId) => transaction.status.toLowerCase() === filterId;
 
 export function TransactionsPage() {
-  const { transactions, refund, loading, error, refresh } = useStore();
+  const { transactions, refund, sections } = useStore();
+  const { loading, onRetry } = sections.transactions;
   const navigate = useNavigate();
   const [showFees, setShowFees] = useState(true);
 
@@ -30,7 +31,7 @@ export function TransactionsPage() {
   };
 
   const empty = (
-    <TableState loading={loading} error={error} onRetry={refresh}>
+    <TableState {...sections.transactions}>
       <EmptyState
         icon="$0"
         title={isFiltered ? 'Nothing matches that filter' : 'No payments yet'}
@@ -60,7 +61,7 @@ export function TransactionsPage() {
         subtitle="Every test payment, newest first."
         action={
           <>
-            <Button variant="ghost" onClick={refresh} disabled={loading}>
+            <Button variant="ghost" onClick={onRetry} disabled={loading}>
               {loading ? 'Refreshing…' : 'Refresh'}
             </Button>
             <Button onClick={newLink}>New payment link</Button>

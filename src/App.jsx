@@ -9,15 +9,21 @@ import { TransactionsPage } from './pages/transactions/TransactionsPage';
 import { PaymentLinksPage } from './pages/payment-links/PaymentLinksPage';
 
 function Layout() {
-  const { products, transactions, links, loading, toast } = useStore();
+  const { products, transactions, links, sections, toast } = useStore();
 
-  /* Counts stay blank until the first load returns, rather than flashing 0. */
-  const countOf = (list) => (loading ? '' : list.length);
+  /* Each count waits on its own section, so a list that's loaded shows its
+     number even while the others are still fetching or erroring. Blank rather
+     than 0 until then. */
+  const countOf = (list, section) => (section.loading || section.error ? '' : list.length);
 
   const navItems = [
-    { to: '/products', label: 'Products', count: countOf(products) },
-    { to: '/transactions', label: 'Transactions', count: countOf(transactions) },
-    { to: '/payment-links', label: 'Payment links', count: countOf(links) },
+    { to: '/products', label: 'Products', count: countOf(products, sections.products) },
+    {
+      to: '/transactions',
+      label: 'Transactions',
+      count: countOf(transactions, sections.transactions),
+    },
+    { to: '/payment-links', label: 'Payment links', count: countOf(links, sections.links) },
   ];
 
   return (

@@ -11,7 +11,7 @@ import { PaymentLinkTable } from './components/PaymentLinkTable';
 import { NewLinkModal } from './components/NewLinkModal';
 
 export function PaymentLinksPage() {
-  const { links, products, createLink, showToast, loading, error, refresh } = useStore();
+  const { links, products, createLink, showToast, sections } = useStore();
   const location = useLocation();
 
   /* Arriving from a product's "Link" button (or the ledger's empty state)
@@ -29,7 +29,7 @@ export function PaymentLinksPage() {
   };
 
   const empty = (
-    <TableState loading={loading} error={error} onRetry={refresh}>
+    <TableState {...sections.links}>
       <EmptyState
         title="No links yet"
         body="Create one and share it — once someone pays, the charge shows up in the transactions ledger."
@@ -48,7 +48,9 @@ export function PaymentLinksPage() {
         title="Payment links"
         subtitle="Share a link, take a test payment."
         action={
-          <Button onClick={openBlank} disabled={loading || products.length === 0}>
+          /* A link bills a product, so this waits on the products list, not the
+             links one — it stays disabled while that loads or fails. */
+          <Button onClick={openBlank} disabled={products.length === 0}>
             New payment link
           </Button>
         }

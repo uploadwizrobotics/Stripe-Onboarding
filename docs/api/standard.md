@@ -40,25 +40,32 @@ exactly what the docs say.
 
 ## Exercise: build the six endpoints
 
-`stripe-api.js` has no routes in it. The React app calls six endpoints that
-don't exist, so every request falls through to the catch-all 404 and the UI
-shows an error instead of a store. Building them is the exercise.
+The six routes in `stripe-api.js` are registered but empty. Each answers **501
+Not Implemented** with a message naming itself, and the UI shows an error
+instead of a store. Filling them in is the exercise.
 
-Each endpoint is three pieces of work:
+```
+GET /api/products isn't built yet — find its TODO in stripe-api.js.
+```
+
+That message disappearing, one endpoint at a time, is your progress bar. A
+**404** means something different — a path that matches no route at all, i.e. a
+typo.
+
+Each endpoint is two pieces of work:
 
 | | |
 |---|---|
-| **Register the route** | `app.get(path, route(async (req) => { … }))` — `route()` is written for you, at the top of the file |
 | **Call Stripe** | the docs link in each TODO block shows the call |
 | **Map the response** | Stripe's object → the row the table renders |
 
-The paths are fixed — `src/api/stripeApi.js` already fetches them, so they have
-to match exactly. `/api/health` is left in as a worked example of the shape.
+The paths are already written, and they're fixed — `src/api/stripeApi.js`
+fetches them. `/api/health` is a worked example of a complete route.
 
-**A good way in.** Register one route that returns Stripe's raw data with no
-mapping at all, then open `http://localhost:5173/api/products` and read what
-comes back. Now you're mapping something real instead of guessing from the
-docs. Repeat per endpoint.
+**A good way in.** Do the first half only: make the Stripe call, return its raw
+data, no mapping. Open `http://localhost:5173/api/products` and read what comes
+back. Now you're mapping something real instead of guessing from the docs.
+Repeat per endpoint.
 
 The mapping is the part people underestimate. A Stripe object has dozens of
 fields; a table row has six.

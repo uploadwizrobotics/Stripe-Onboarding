@@ -56,12 +56,16 @@ One process, one port. Open http://localhost:5173.
 
 ## Your job
 
-The API is empty. `stripe-api.js` has the setup, the error handling and one
-worked example route — but the six endpoints the app actually calls aren't
-written, so the first thing you'll see is an error, not a store.
+The API is a shell. `stripe-api.js` has the setup, the error handling, the six
+routes and one worked example — but the handlers are empty, so every endpoint
+answers `501` and the first thing you'll see is an error, not a store:
 
-Building them is the point of this repo. Each has a `TODO` block with the spec,
-the Stripe docs link, and a warning about the part that bites. Start with
+```
+GET /api/products isn't built yet — find its TODO in stripe-api.js.
+```
+
+Filling them in is the point of this repo. Each has a `TODO` block with the
+spec, the Stripe docs link, and a warning about the part that bites. Start with
 `GET /api/products`; the first one working proves the whole chain.
 
 Read `docs/api/standard.md` first — it has the row shapes you're aiming for.

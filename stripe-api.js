@@ -39,26 +39,24 @@ export function stripeApi({ secretKey, currency = "cad" }) {
 
   /* ---------------------------- YOUR JOB ---------------------------------- *
    *
-   * This file has no routes in it. The React app calls six endpoints that
-   * don't exist yet, so every request falls through to the 404 at the bottom
-   * and the UI shows an error instead of a store. Your job is to build them.
+   * The six routes below are registered but empty, so every one answers 501
+   * and the UI shows an error instead of a store. Your job is to fill them in.
    *
-   * Each one is three pieces of work:
+   * Each one is two pieces of work:
    *
-   *   1. Register the route.   app.get(path, route(async (req) => { ... }))
-   *   2. Call Stripe.          the docs link in each block shows the call
-   *   3. Map the response.     Stripe's object into the row the table renders
+   *   1. Call Stripe.          the docs link in each block shows the call
+   *   2. Map the response.     Stripe's object into the row the table renders
    *
-   * Step 3 is the one people underestimate. A Stripe product has ~25 fields
+   * Step 2 is the one people underestimate. A Stripe product has ~25 fields
    * and the table renders six. Work out which six, find where each one lives,
    * and write the function that turns one into the other:
    *
    *     const mapProduct = (product) => ({ id: product.id, ... });
    *
    * A GOOD WAY IN
-   *   Get one route registered returning Stripe's raw data, with no mapping at
-   *   all. Open http://localhost:5173/api/products and read what comes back.
-   *   Now you know what you're mapping, and you can write step 3 against
+   *   Do step 1 only: make the Stripe call and return its raw data, no mapping
+   *   at all. Open http://localhost:5173/api/products and read what comes back.
+   *   Now you know what you're mapping, and you can write step 2 against
    *   something real instead of guessing from the docs. Then repeat.
    *   console.log works too — it prints in your terminal, not the browser,
    *   because this file runs in Node.
@@ -87,10 +85,26 @@ export function stripeApi({ secretKey, currency = "cad" }) {
   /**
    * Return a value and it's sent as JSON; throw and it becomes
    * `{ error: message }` with the right status.
+   *
+   * A handler that returns nothing is one you haven't written yet, so say so
+   * plainly. Without this the browser gets an empty 200, JSON.parse chokes on
+   * it, and the app dies somewhere in React with a stack trace that points
+   * nowhere near the real problem.
    */
   const route = (handler) => async (req, res) => {
     try {
-      res.json(await handler(req));
+      const payload = await handler(req);
+
+      if (payload === undefined) {
+        throw Object.assign(
+          new Error(
+            `${req.method} ${req.path} isn't built yet — find its TODO in stripe-api.js.`,
+          ),
+          { statusCode: 501 },
+        );
+      }
+
+      res.json(payload);
     } catch (error) {
       const status = error.statusCode || 500;
       const message =
@@ -121,87 +135,115 @@ export function stripeApi({ secretKey, currency = "cad" }) {
    * bottom of this file. `/api/health` below is a working example of the
    * simplest possible route.
    *
+   * Until a handler returns something, its endpoint answers 501 and the app
+   * shows you which one it was. That message going away is your progress bar.
+   *
    * Build them in order. The first one working proves the whole chain —
    * browser → fetch → Express → Stripe → back — and the rest are variations.
    * ------------------------------------------------------------------------ */
 
-  // ── GET request → /api/products ───────────────────────────────────────────
-  // TODO 01 — list the products.
-  //   Docs: https://stripe.com/docs/api/products/list
-  //
-  //   Cap the list at LIMIT, and ask for active products only: archived
-  //   ones shouldn't clutter the admin.
-  //   `default_price` comes back as an id string unless you expand it, and
-  //   the id alone can't tell you the amount. That's the $0.00 bug.
-  //   Return an array of product rows.
+  app.get(
+    "/api/products",
+    route(async () => {
+      // TODO 01 — list the products.
+      //   Docs: https://stripe.com/docs/api/products/list
+      //
+      //   Cap the list at LIMIT, and ask for active products only: archived
+      //   ones shouldn't clutter the admin.
+      //   `default_price` comes back as an id string unless you expand it, and
+      //   the id alone can't tell you the amount. That's the $0.00 bug.
+      //   Return an array of product rows.
+    }),
+  );
 
-  // ── POST request → /api/products ──────────────────────────────────────────
-  // TODO 02 — create a product, and a price to go with it.
-  //   Docs: https://stripe.com/docs/api/products/create
-  //
-  //   The form sends { name, blurb, price, sku } on req.body, with price
-  //   already in cents. Reject a blank name with badRequest(...) before you
-  //   call Stripe.
-  //   A product and its price are two objects in Stripe; you can create
-  //   both in one call, priced in CURRENCY. The SKU has no field of its
-  //   own — Stripe's escape hatch for that is `metadata`.
-  //   Return one product row, the same shape the list returns: it goes
-  //   straight to the top of the table without a refetch.
+  app.post(
+    "/api/products",
+    route(async (req) => {
+      // TODO 02 — create a product, and a price to go with it.
+      //   Docs: https://stripe.com/docs/api/products/create
+      //
+      //   The form sends { name, blurb, price, sku } on req.body, with price
+      //   already in cents. Reject a blank name with badRequest(...) before you
+      //   call Stripe.
+      //   A product and its price are two objects in Stripe; you can create
+      //   both in one call, priced in CURRENCY. The SKU has no field of its
+      //   own — Stripe's escape hatch for that is `metadata`.
+      //   Return one product row, the same shape the list returns: it goes
+      //   straight to the top of the table without a refetch.
+    }),
+  );
 
-  // ── GET request → /api/transactions ───────────────────────────────────────
-  // TODO 03 — list the charges.
-  //   Docs: https://stripe.com/docs/api/charges/list
-  //
-  //   `fee` and `net` are not on the charge. They live on its balance
-  //   transaction, which needs expanding, and they stay null until it
-  //   settles — render that, don't fake a zero.
-  //
-  //   The item name is the hard part. A charge from a payment link has no
-  //   description; the product name is on the Checkout Session instead
-  //   (https://stripe.com/docs/api/checkout/sessions/list — expand its line
-  //   items). Both objects point at the same payment_intent, so fetch the
-  //   two lists and join them in memory rather than one lookup per row.
-  //   Careful: payment_intent is sometimes an id string and sometimes an
-  //   expanded object.
-  //   Return an array of transaction rows.
+  app.get(
+    "/api/transactions",
+    route(async () => {
+      // TODO 03 — list the charges.
+      //   Docs: https://stripe.com/docs/api/charges/list
+      //
+      //   `fee` and `net` are not on the charge. They live on its balance
+      //   transaction, which needs expanding, and they stay null until it
+      //   settles — render that, don't fake a zero.
+      //
+      //   The item name is the hard part. A charge from a payment link has no
+      //   description; the product name is on the Checkout Session instead
+      //   (https://stripe.com/docs/api/checkout/sessions/list — expand its line
+      //   items). Both objects point at the same payment_intent, so fetch the
+      //   two lists and join them in memory rather than one lookup per row.
+      //   Careful: payment_intent is sometimes an id string and sometimes an
+      //   expanded object.
+      //   Return an array of transaction rows.
+    }),
+  );
 
-  // ── POST request → /api/transactions/:chargeId/refund ─────────────────────
-  // TODO 04 — refund a charge. The id arrives as a URL parameter, not a body.
-  //   Docs: https://stripe.com/docs/api/refunds/create
-  //
-  //   Creating a refund hands back a Refund object, not the charge, and the
-  //   copy you already had still says refunded: false. Re-read the charge
-  //   so the row you return carries the new status and the settled fee.
-  //   Return one transaction row — it replaces the existing row in the
-  //   table. There's no checkout session joined in here, so whatever you do
-  //   for `item` has to cope with it being absent.
+  app.post(
+    "/api/transactions/:chargeId/refund",
+    route(async (req) => {
+      // TODO 04 — refund a charge. The id arrives as a URL parameter, not a
+      // body: it's on req.params, named after the `:chargeId` in the path above.
+      //   Docs: https://stripe.com/docs/api/refunds/create
+      //
+      //   Creating a refund hands back a Refund object, not the charge, and the
+      //   copy you already had still says refunded: false. Re-read the charge
+      //   so the row you return carries the new status and the settled fee.
+      //   Return one transaction row — it replaces the existing row in the
+      //   table. There's no checkout session joined in here, so whatever you do
+      //   for `item` has to cope with it being absent.
+    }),
+  );
 
-  // ── GET request → /api/payment-links ──────────────────────────────────────
-  // TODO 05 — list the payment links.
-  //   Docs: https://stripe.com/docs/api/payment-links/list
-  //
-  //   Expand the line items: that's where the amount and the product name
-  //   are. Don't try to reach through to price.product for the name — on a
-  //   list call that path is data.line_items.data.price.product, five
-  //   levels deep, and Stripe caps expansion at four. The line item's own
-  //   description is already the product name.
-  //   The row's amount is unit price × quantity, not unit price.
-  //   Return an array of payment-link rows.
+  app.get(
+    "/api/payment-links",
+    route(async () => {
+      // TODO 05 — list the payment links.
+      //   Docs: https://stripe.com/docs/api/payment-links/list
+      //
+      //   Expand the line items: that's where the amount and the product name
+      //   are. Don't try to reach through to price.product for the name — on a
+      //   list call that path is data.line_items.data.price.product, five
+      //   levels deep, and Stripe caps expansion at four. The line item's own
+      //   description is already the product name.
+      //   The row's amount is unit price × quantity, not unit price.
+      //   Return an array of payment-link rows.
+    }),
+  );
 
-  // ── POST request → /api/payment-links ─────────────────────────────────────
-  // TODO 06 — create a payment link.
-  //   Docs: https://stripe.com/docs/api/payment-links/create
-  //
-  //   The modal sends { productId, amount, quantity, customerName }. Reject
-  //   a missing productId with badRequest(...).
-  //   A link bills a Price, never a product and never a raw number. The
-  //   product's default price is usually the one you want — but the modal
-  //   lets someone override the amount, and in that case you need to create
-  //   a new price first. A product with no price at all is an error worth
-  //   its own message.
-  //   A payment link has nowhere to put a customer name, so park it in
-  //   metadata and read it back out when you map.
-  //   Return one payment-link row.
+  app.post(
+    "/api/payment-links",
+    route(async (req) => {
+      // TODO 06 — create a payment link.
+      //   Docs: https://stripe.com/docs/api/payment-links/create
+      //
+      //   The modal sends { productId, amount, quantity, customerName }. Reject
+      //   a missing productId with badRequest(...).
+      //   A link bills a Price, never a product and never a raw number. The
+      //   product's default price is usually the one you want — but the modal
+      //   lets someone override the amount, and in that case you need to create
+      //   a new price first. A product with no price at all is an error worth
+      //   its own message.
+      //   A payment link has nowhere to put a customer name, so park it in
+      //   metadata and read it back out when you map.
+      //   Return one payment-link row.
+    }),
+  );
 
   /* A worked example — the shape every route above should end up in. */
   app.get("/api/health", (_req, res) => res.json({ ok: true, mode: "test" }));

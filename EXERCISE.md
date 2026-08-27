@@ -52,6 +52,46 @@ React  →  /api/products  →  your Express app  →  Stripe
 `express` and `stripe` are already installed. You mount Express inside Vite's
 dev server as a plugin, so there's no second process, no proxy and no CORS.
 
+## Reading the Stripe docs
+
+Every method you need is documented at
+[stripe.com/docs/api](https://stripe.com/docs/api), and the examples there are
+copy-pasteable once you know the one translation.
+
+The docs show CommonJS with the key inline:
+
+```js
+const stripe = require('stripe')('sk_test_51Qp...');
+const product = await stripe.products.create({ name: 'Gold Plan' });
+```
+
+This project is ESM, and the key lives in `.env`:
+
+```js
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const product = await stripe.products.create({ name: 'Gold Plan' });
+```
+
+Only the first two lines differ. Everything after `stripe.` — method names,
+arguments, response shape — is exactly what the docs say.
+
+### Try calls before you wire them
+
+`scratch.js` is a playground for exactly this. Paste an example from the docs,
+run it, look at what comes back:
+
+```bash
+npm run scratch
+```
+
+It starts with `products.list` run twice — once plain, once with `expand` — so
+you can see `default_price` change from an id string into an object. That one
+difference is behind most of the "why is this blank?" moments in this exercise.
+
+Anything you create in there is real and lands in your Dashboard. Work a call
+out in `scratch.js` first, then move the version that worked into the app.
+
 ## Part A — stand up the API
 
 `vite.config.js` has **TODO(A)**, which sketches the plugin and where it mounts.

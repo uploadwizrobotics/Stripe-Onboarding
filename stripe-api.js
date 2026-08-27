@@ -156,27 +156,10 @@ export function stripeApi({ secretKey, currency = "cad" }) {
     }),
   );
 
-  app.post(
-    "/api/products",
-    route(async (req) => {
-      // TODO 02 — create a product, and a price to go with it.
-      //   Docs: https://stripe.com/docs/api/products/create
-      //
-      //   The form sends { name, blurb, price, sku } on req.body, with price
-      //   already in cents. Reject a blank name with badRequest(...) before you
-      //   call Stripe.
-      //   A product and its price are two objects in Stripe; you can create
-      //   both in one call, priced in CURRENCY. The SKU has no field of its
-      //   own — Stripe's escape hatch for that is `metadata`.
-      //   Return one product row, the same shape the list returns: it goes
-      //   straight to the top of the table without a refetch.
-    }),
-  );
-
   app.get(
     "/api/transactions",
     route(async () => {
-      // TODO 03 — list the charges.
+      // TODO 02 — list the charges.
       //   Docs: https://stripe.com/docs/api/charges/list
       //
       //   `fee` and `net` are not on the charge. They live on its balance
@@ -194,26 +177,10 @@ export function stripeApi({ secretKey, currency = "cad" }) {
     }),
   );
 
-  app.post(
-    "/api/transactions/:chargeId/refund",
-    route(async (req) => {
-      // TODO 04 — refund a charge. The id arrives as a URL parameter, not a
-      // body: it's on req.params, named after the `:chargeId` in the path above.
-      //   Docs: https://stripe.com/docs/api/refunds/create
-      //
-      //   Creating a refund hands back a Refund object, not the charge, and the
-      //   copy you already had still says refunded: false. Re-read the charge
-      //   so the row you return carries the new status and the settled fee.
-      //   Return one transaction row — it replaces the existing row in the
-      //   table. There's no checkout session joined in here, so whatever you do
-      //   for `item` has to cope with it being absent.
-    }),
-  );
-
   app.get(
     "/api/payment-links",
     route(async () => {
-      // TODO 05 — list the payment links.
+      // TODO 03 — list the payment links.
       //   Docs: https://stripe.com/docs/api/payment-links/list
       //
       //   Expand the line items: that's where the amount and the product name
@@ -227,9 +194,26 @@ export function stripeApi({ secretKey, currency = "cad" }) {
   );
 
   app.post(
+    "/api/products",
+    route(async (req) => {
+      // TODO 04 — create a product, and a price to go with it.
+      //   Docs: https://stripe.com/docs/api/products/create
+      //
+      //   The form sends { name, blurb, price, sku } on req.body, with price
+      //   already in cents. Reject a blank name with badRequest(...) before you
+      //   call Stripe.
+      //   A product and its price are two objects in Stripe; you can create
+      //   both in one call, priced in CURRENCY. The SKU has no field of its
+      //   own — Stripe's escape hatch for that is `metadata`.
+      //   Return one product row, the same shape the list returns: it goes
+      //   straight to the top of the table without a refetch.
+    }),
+  );
+
+  app.post(
     "/api/payment-links",
     route(async (req) => {
-      // TODO 06 — create a payment link.
+      // TODO 05 — create a payment link.
       //   Docs: https://stripe.com/docs/api/payment-links/create
       //
       //   The modal sends { productId, amount, quantity, customerName }. Reject
@@ -242,6 +226,22 @@ export function stripeApi({ secretKey, currency = "cad" }) {
       //   A payment link has nowhere to put a customer name, so park it in
       //   metadata and read it back out when you map.
       //   Return one payment-link row.
+    }),
+  );
+
+  app.post(
+    "/api/transactions/:chargeId/refund",
+    route(async (req) => {
+      // TODO 06 — refund a charge. The id arrives as a URL parameter, not a
+      // body: it's on req.params, named after the `:chargeId` in the path above.
+      //   Docs: https://stripe.com/docs/api/refunds/create
+      //
+      //   Creating a refund hands back a Refund object, not the charge, and the
+      //   copy you already had still says refunded: false. Re-read the charge
+      //   so the row you return carries the new status and the settled fee.
+      //   Return one transaction row — it replaces the existing row in the
+      //   table. There's no checkout session joined in here, so whatever you do
+      //   for `item` has to cope with it being absent.
     }),
   );
 

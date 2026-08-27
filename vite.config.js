@@ -4,8 +4,9 @@ import { stripeApi } from './stripe-api.js';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  /* The '' prefix loads every variable, not just VITE_* ones — that's how the
-     secret key reaches the plugin without reaching the browser bundle. */
+  /* Vite only exposes VITE_*-prefixed vars, and only to browser code. The
+     third argument is an empty prefix, which loads everything in .env so the
+     Node side can read STRIPE_SECRET_KEY. It never reaches the bundle. */
   const env = loadEnv(mode, process.cwd(), '');
 
   return {

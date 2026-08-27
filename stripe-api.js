@@ -32,67 +32,35 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
   const CURRENCY = currency.toLowerCase();
   const LIMIT = 50;
 
-  /* ----------------------------- Mapping ---------------------------------- *
-   * Stripe's objects into what the UI renders, so Stripe field names never
-   * leak into the React code.
+  /* ---------------------------- YOUR JOB ---------------------------------- *
+   *
+   * Every route below currently returns Stripe's raw objects, so the UI is
+   * broken: prices read $0.00, names come out blank, statuses don't match the
+   * filter chips. Your task is to write the mapping that fixes it.
+   *
+   * A Stripe product is ~25 fields. The table renders six of them. Work out
+   * which six, where each one lives, and turn one into the other:
+   *
+   *     const mapProduct = (product) => ({ id: product.id, ... });
+   *
+   * HOW TO SEE WHAT YOU'RE MAPPING
+   *   1. npm run dev, then open http://localhost:5173/api/products directly —
+   *      that's the raw JSON, same as what the route returns.
+   *   2. Or console.log the object here; it prints in the terminal, not the
+   *      browser, because this file runs in Node.
+   *
+   * THE SHAPE TO HIT is in docs/api/standard.md. The components are the real
+   * source of truth if you'd rather read those — the tables under src/pages.
+   *
+   * WATCH FOR
+   *   - Amounts are integer cents. Don't divide; formatCurrency does that.
+   *   - `default_price` is an id string unless the call expands it. The expands
+   *     are already written for you — look at what they change.
+   *   - Fee and net aren't on the charge. They're on its balance transaction,
+   *     and they're null until it settles.
+   *   - Status strings are matched exactly by the UI, capital letter included.
+   *   - Stripe timestamps are seconds. JavaScript wants milliseconds.
    * ------------------------------------------------------------------------ */
-
-  const mapProduct = (product) => {
-    const price = product.default_price;
-    const hasPrice = price && typeof price === 'object';
-
-    return {
-      id: product.id,
-      name: product.name,
-      blurb: product.description || '',
-      sku: product.metadata?.sku || '',
-      price: hasPrice ? (price.unit_amount ?? 0) : 0,
-      status: product.active ? 'Active' : 'Draft',
-    };
-  };
-
-  const mapCharge = (charge, item) => {
-    const balance = charge.balance_transaction;
-    const settled = balance && typeof balance === 'object';
-    const card = charge.payment_method_details?.card;
-
-    let status = 'Pending';
-    if (charge.refunded) status = 'Refunded';
-    else if (charge.status === 'succeeded') status = 'Succeeded';
-    else if (charge.status === 'failed') status = 'Failed';
-
-    return {
-      id: charge.id,
-      customer: charge.billing_details?.name || 'Guest checkout',
-      email: charge.billing_details?.email || '—',
-      item: item || charge.description || '—',
-      gross: charge.amount,
-      // Stripe's real numbers, null until the balance transaction settles.
-      fee: settled ? balance.fee : null,
-      net: settled ? balance.net : null,
-      status,
-      date: new Date(charge.created * 1000).toISOString(),
-      card: card ? `${card.brand} · ${card.last4}` : '—',
-    };
-  };
-
-  /* Note: don't expand through to price.product for the name — on the list
-     call that's `data.line_items.data.price.product`, five levels deep, and
-     Stripe caps expansion at four. The line item's own description is the
-     product name anyway. */
-  const mapPaymentLink = (link) => {
-    const lineItem = link.line_items?.data?.[0];
-    const price = lineItem?.price;
-
-    return {
-      id: link.id,
-      url: link.url,
-      item: lineItem?.description || 'Payment link',
-      amount: (price?.unit_amount ?? 0) * (lineItem?.quantity ?? 1),
-      customer: link.metadata?.customer_name || '—',
-      status: link.active ? 'Active' : 'Inactive',
-    };
-  };
 
   const badRequest = (message) => Object.assign(new Error(message), { statusCode: 400 });
 
@@ -128,7 +96,8 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
         active: true, // archived products stay out of the admin
         expand: ['data.default_price'],
       });
-      return products.data.map(mapProduct);
+      // TODO: map each product to a product row. See YOUR JOB above.
+      return products.data;
     }),
   );
 
@@ -147,7 +116,9 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
         expand: ['default_price'],
       });
 
-      return mapProduct(product);
+      // TODO: same mapping as GET /api/products — the new row is prepended to
+      // the table, so it has to match the shape the list returns.
+      return product;
     }),
   );
 
@@ -173,9 +144,12 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
           ]),
       );
 
-      return charges.data.map((charge) =>
-        mapCharge(charge, itemByIntent.get(idOf(charge.payment_intent))),
-      );
+      // The join is done for you — `item` is the product name, already resolved.
+      // TODO: map each of these to a transaction row. See YOUR JOB above.
+      return charges.data.map((charge) => ({
+        ...charge,
+        item: itemByIntent.get(idOf(charge.payment_intent)),
+      }));
     }),
   );
 
@@ -188,7 +162,11 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
       const charge = await stripe.charges.retrieve(req.params.chargeId, {
         expand: ['balance_transaction'],
       });
-      return mapCharge(charge);
+
+      // TODO: same mapping as GET /api/transactions — this row replaces the one
+      // in the table. Note there's no checkout session joined in here, so
+      // whatever you do for `item` has to cope with it being missing.
+      return charge;
     }),
   );
 
@@ -199,7 +177,12 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
         limit: LIMIT,
         expand: ['data.line_items'],
       });
-      return links.data.map(mapPaymentLink);
+      /* Note: don't expand through to price.product for the name — on the list
+         call that's `data.line_items.data.price.product`, five levels deep, and
+         Stripe caps expansion at four. The line item's own description is the
+         product name anyway. */
+      // TODO: map each link to a payment-link row. See YOUR JOB above.
+      return links.data;
     }),
   );
 
@@ -231,7 +214,8 @@ export function stripeApi({ secretKey, currency = 'cad' }) {
         expand: ['line_items'],
       });
 
-      return mapPaymentLink(link);
+      // TODO: same mapping as GET /api/payment-links.
+      return link;
     }),
   );
 

@@ -1,12 +1,12 @@
 /* Client config, read from import.meta.env (see .env.example).
-   Everything here ships in the browser bundle — public by definition. */
+   Everything here ships in the browser bundle — public by definition.
+   The secret key is deliberately absent: it lives in Node, in stripe-api.js. */
 
 const env = import.meta.env;
 
 export const config = {
-  apiUrl: env.VITE_API_URL || '/api',
-  /* Keep in step with STRIPE_CURRENCY in .env — this only controls
-     how amounts are displayed, Stripe decides what's actually charged. */
+  /* Display only. The currency products are actually priced in is
+     STRIPE_CURRENCY, on the server — keep the two in step. */
   currency: (env.VITE_CURRENCY || 'CAD').toUpperCase(),
   locale: env.VITE_LOCALE || 'en-CA',
   /* Env vars are always strings — compare, don't coerce. */

@@ -6,6 +6,20 @@ do here is real Stripe API traffic against fake money.
 
 Nothing here can move real money — the app refuses to start on a live key.
 
+## Shape
+
+A Vite/React frontend and a Node/Express API, running in one process on one
+port. The frontend never touches the Stripe SDK; it calls its own API, and the
+secret key stays in Node.
+
+```
+ProductsPage → StoreProvider → createProduct()      src/api/stripeApi.js
+                                    │ POST /api/products
+                                    ▼
+                        stripe.products.create({ name: 'Gold Plan' })
+                                                    stripe-api.js
+```
+
 ## Setup
 
 **1. Install**
@@ -28,9 +42,9 @@ cp .env.example .env
 
 Put your key in `.env` as `STRIPE_SECRET_KEY`. That's the only edit.
 
-> Leave the name exactly as it is. Vite compiles `VITE_*` variables into the
-> browser bundle — renaming it to `VITE_STRIPE_SECRET_KEY` would publish your
-> key to everyone who loads the page.
+> No `VITE_` prefix, deliberately. Vite compiles only `VITE_*` variables into
+> the browser bundle, so this key stays server-side and can't leak into the
+> client.
 
 **4. Run**
 
@@ -62,29 +76,31 @@ One process, one port. Open http://localhost:5173.
 ## Layout
 
 ```
-stripe-api.js            the Stripe API — runs in Node, inside Vite
-vite.config.js           passes the secret key in, mounts the API
+stripe-api.js            the API — Express + the Stripe SDK, mounted into Vite
+vite.config.js           React plugin + the API plugin, and the .env read
 src/                     React app — inline styles, WIZ Robotics tokens
-├── api/                 fetch wrapper + one function per endpoint
+├── api/                 client.js (fetch) + stripeApi.js (one call per endpoint)
 ├── components/          shared UI, one folder each
 ├── hooks/               useDisclosure, useFilters, useSelection, useToast…
 ├── pages/               products, transactions, payment-links
-├── store/               StoreProvider — fetches and holds Stripe data
+├── store/               StoreProvider — fetches and holds the data
 ├── styles/              theme.js + global.css + tokens/
 └── utils/               config, currency, dates
 design/                  source design canvases (not built)
-docs/api/standard.md     why the API is server-side, how to add an endpoint
+docs/api/standard.md     how the two halves fit, and how to add an endpoint
 ```
 
 ## Notes
 
-- **There's no separate backend.** `stripe-api.js` is a Vite plugin, so the API
-  and the app share a port and a process. Editing it restarts the dev server.
-- **The secret key never reaches the browser** — it has no `VITE_` prefix, so
-  Vite leaves it in Node. See `docs/api/standard.md`.
+- **Endpoints live in `stripe-api.js`.** Every call is the same SDK and the same
+  method names as the Stripe docs. See `docs/api/standard.md` for how to add
+  one.
+- **Stripe field names stop at the server.** Routes return rows already mapped
+  for the tables, so no `unit_amount` or `balance_transaction` in React.
 - **Sold count** is derived by matching charge descriptions to product names —
   Stripe has no per-product sales counter.
 - **Payment link status** is Stripe's `active` flag, not paid/unpaid. A link can
   be paid many times.
 - **Paying** happens on Stripe's hosted page, which is why the action is
   **Open** rather than a pay button.
+# Stripe-Onboarding

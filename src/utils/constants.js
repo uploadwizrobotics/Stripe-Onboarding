@@ -5,7 +5,7 @@ export const STORE_NAME = 'Stripe Test Store';
 export const OWNER = { name: 'John Doe', role: 'Owner' };
 
 /** Filter chips above the transactions ledger. Ids match the mapped status,
-    lowercased — see mapCharge in stripe-api.js. */
+    lowercased — they must match the status strings your API returns. */
 export const TX_FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'succeeded', label: 'Succeeded' },

@@ -1,26 +1,23 @@
-# Exercise — wire the admin up to Stripe
+# Exercise — give the admin a Stripe backend
 
-The app is finished. Nothing behind it is.
+The frontend is finished and you don't change it. Pages, tables, modals, the
+drawer, the store — all working, all waiting for data that never arrives.
 
-Everything you write lives in **one file: `stripe-api.js`** — nine `TODO`s. No
-React, no CSS, no build config. If a page looks wrong, the cause is in that
-file.
+Everything behind them is yours to write.
 
-Two jobs, alternating:
+```
+GIVEN    src/                    React app: pages, tables, store, styling
+         vite.config.js          the app builds and runs
+         .env.example            what config is needed
 
-1. **Fetch it from Stripe** — get the right objects back, with the right fields
-   filled in.
-2. **Shape it into a row** — turn a Stripe object into exactly what the table
-   renders.
+YOURS    stripe-api.js           ← doesn't exist yet. Create it
+         src/api/stripeApi.js    ← six stubs to fill in
+```
 
-The tables are already written and you don't change them. That makes them your
-spec: `ProductTable.jsx` reads `p.price`, so `mapProduct` has to produce
-`price`. Read the table, then write the mapper, then write the call that feeds
-it.
+Run it now and every page shows an error naming the function to go write. That
+is the starting line.
 
 ## Setup
-
-**1. Install and get a sandbox key**
 
 ```bash
 npm install
@@ -32,124 +29,174 @@ In the [Stripe Dashboard](https://dashboard.stripe.com), confirm you're in a
 **secret** key — it starts with `sk_test_`. Put it in `.env` as
 `STRIPE_SECRET_KEY`.
 
-> Don't rename that variable to `VITE_STRIPE_SECRET_KEY`. Vite compiles
-> `VITE_*` values into the browser bundle — that would publish your key to
-> anyone who loads the page. Everything you write in `stripe-api.js` runs in
-> Node, which is the point.
-
-**2. Run it**
+> Don't give it a `VITE_` prefix. Vite compiles `VITE_*` values into the
+> browser bundle — that prefix would publish your key to everyone who loads the
+> page. Keeping it out of the browser is the whole reason the API exists.
 
 ```bash
 npm run dev
 ```
 
-http://localhost:5173. Every page will be empty — that's the starting line.
+http://localhost:5173
 
-`stripe-api.js` is part of the Vite config, so **saving it restarts the
-server**. Give it a second, then refresh.
+## The shape of it
 
-## The tasks
+The browser never talks to Stripe. It calls your API on its own origin, and
+your API talks to Stripe with the secret key:
 
-Do them in order — each gives you something the next one needs.
-
-All nine are in **`stripe-api.js`**. Line numbers are where each one starts in
-the untouched template — they shift as you write, so to find them at any point:
-
-```bash
-grep -n "TODO(" stripe-api.js
+```
+React  →  /api/products  →  your Express app  →  Stripe
+          (same port)       (in Node)
 ```
 
-| # | Where | Function | Done when |
-|---|---|---|---|
-| 1 | `stripe-api.js:49` | `mapProduct` | — (nothing visible yet; TODO(2) proves it) |
-| 2 | `stripe-api.js:151` | `listProducts` | Products page lists your sandbox products at the right prices |
-| 3 | `stripe-api.js:179` | `createProduct` | **Add product** creates one, and it appears in the list |
-| 4 | `stripe-api.js:106` | `mapPaymentLink` | — |
-| 5 | `stripe-api.js:261` | `listPaymentLinks` | Payment links page shows links with the right item and amount |
-| 6 | `stripe-api.js:291` | `createPaymentLink` | **New payment link** creates one you can open and pay |
-| 7 | `stripe-api.js:73` | `mapCharge` | — |
-| 8 | `stripe-api.js:205` | `listTransactions` | Your test payment appears, with item name, fee and net |
-| 9 | `stripe-api.js:244` | `refundTransaction` | **Refund** in the drawer flips the row to Refunded |
+`express` and `stripe` are already installed. You mount Express inside Vite's
+dev server as a plugin, so there's no second process, no proxy and no CORS.
 
-They're grouped by kind in the file, not by task number — all three mappers sit
-together near the top, the six route handlers below them. So you'll jump around
-rather than working straight down.
+## Part A — stand up the API
 
-### Files you read but never edit
+`vite.config.js` has **TODO(A)**, which sketches the plugin and where it mounts.
 
-Each mapper's field list comes from a table component. When a column looks
-wrong, open the one that renders it:
+Done when `curl localhost:5173/api/health` answers instead of returning the
+React app's HTML.
 
-| Mapper | Read this to see what the row needs |
+## Part B — the six endpoints
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/products` | array of product rows |
+| POST | `/api/products` | the created product row |
+| GET | `/api/transactions` | array of transaction rows |
+| POST | `/api/transactions/:chargeId/refund` | the updated transaction row |
+| GET | `/api/payment-links` | array of payment link rows |
+| POST | `/api/payment-links` | the created payment link row |
+
+On failure, answer with the upstream status and `{ error: "message" }` —
+`src/api/client.js` reads `error` and the UI shows it verbatim, so write those
+messages for a human.
+
+### What a "row" is
+
+This is the part worth getting exactly right: **the tables are the spec.**
+Each one reads specific fields off each row, so your job is to turn a Stripe
+object into precisely this shape. Open the component if you want to see it.
+
+**Product row** — `src/pages/products/components/ProductTable.jsx`
+
+| field | |
 |---|---|
-| `mapProduct` | `src/pages/products/components/ProductTable.jsx` |
-| `mapPaymentLink` | `src/pages/payment-links/components/PaymentLinkTable.jsx` |
-| `mapCharge` | `src/pages/transactions/components/TransactionTable.jsx`<br>`src/pages/transactions/components/TransactionDrawer.jsx` |
+| `id` | Stripe product id |
+| `name` | the product's name |
+| `blurb` | its description, `''` when absent |
+| `sku` | `metadata.sku`, `''` when absent |
+| `price` | the default price's amount, in **cents**. `0` if there's no price |
+| `status` | `'Active'` or `'Draft'` |
 
-Two more worth knowing about, though nothing in them needs changing:
+(`initials` and `sold` are derived in `src/store/StoreProvider.jsx` — not yours.)
 
-- `src/store/StoreProvider.jsx` — calls the API and holds the results. It also
-  derives `initials` and `sold`, which is why your mappers don't.
-- `src/styles/theme.js` — `STATUS_CHIP` lists the exact status strings that
-  colour a chip. If a chip renders grey when you expected green, your mapper
-  spelled the status differently to what's in here.
+**Transaction row** — `TransactionTable.jsx` and `TransactionDrawer.jsx`
 
-A mapper on its own shows you nothing — it's the list call right after it that
-puts rows on screen. Expect to go back and fix the mapper once you can see it.
+| field | |
+|---|---|
+| `id` | Stripe charge id |
+| `customer` | billing name, `'Guest checkout'` when absent |
+| `email` | billing email, `'—'` when absent |
+| `item` | what was bought — see the note below |
+| `gross` | charge amount, in cents |
+| `fee` | Stripe's fee, in cents, or `null` |
+| `net` | what you keep, in cents, or `null` |
+| `status` | `'Succeeded'` \| `'Refunded'` \| `'Failed'` \| `'Pending'` |
+| `date` | an ISO string |
+| `card` | e.g. `'visa · 4242'`, `'—'` when absent |
 
-**Between 6 and 8, take a real test payment.** Open the link you just made and
-pay with card `4242 4242 4242 4242`, any future expiry, any CVC, any postal
-code. Without that there's nothing for TODO(8) to list.
+**Payment link row** — `PaymentLinkTable.jsx`
 
-## How to tell you got it right
+| field | |
+|---|---|
+| `id` | Stripe payment link id |
+| `url` | the checkout URL |
+| `item` | what's being sold |
+| `amount` | total in cents: unit amount × quantity |
+| `customer` | the name you stored in metadata, `'—'` when absent |
+| `status` | `'Active'` or `'Inactive'` |
 
-The app is the test. Each TODO lists the exact symptom you'll see if it's
-almost-but-not-quite right — several of these fail by looking *plausible*
-rather than by crashing, which is the part worth practising.
+Those `status` strings are exact. They drive both the chip colour and the
+filter buttons — see `STATUS_CHIP` in `src/styles/theme.js`. A chip that
+renders grey when you expected green means you spelled one differently.
 
-Two ways to see what's actually happening:
+## Part C — the six fetch wrappers
 
-- **Terminal** — every failed request logs `[GET /api/products] <message>`
-- **Dashboard** — everything you create is real. Open
-  [the products page](https://dashboard.stripe.com/test/products) and confirm
-  it landed.
+`src/api/stripeApi.js`, **TODO(1)** through **TODO(6)**. One line each once the
+endpoints exist.
 
-You can also hit the API directly, without the UI:
+## Order to work in
+
+Each step gives you something the next one needs.
+
+| | Step | Done when |
+|---|---|---|
+| 1 | TODO(A) — the plugin | `/api/health` answers |
+| 2 | `GET /api/products` + TODO(1) | Products page lists your sandbox products at the right prices |
+| 3 | `POST /api/products` + TODO(2) | **Add product** creates one and it appears |
+| 4 | `GET /api/payment-links` + TODO(5) | Payment links page shows links with the right item and amount |
+| 5 | `POST /api/payment-links` + TODO(6) | **New payment link** creates one you can open and pay |
+| 6 | *take a test payment* | card `4242 4242 4242 4242`, any future expiry, any CVC, any postal code |
+| 7 | `GET /api/transactions` + TODO(3) | the payment appears, with item name, fee and net |
+| 8 | `POST .../refund` + TODO(4) | **Refund** in the drawer flips the row to Refunded |
+
+Step 6 isn't optional — without a real payment there's nothing for step 7 to
+list.
+
+## Things that will catch you out
+
+Each of these fails by looking *plausible* rather than by crashing, which is
+the part worth practising.
+
+- **Stripe returns ids, not objects.** A product's `default_price`, a charge's
+  `balance_transaction` — all id strings until you `expand` them. Most
+  "why is this blank?" moments start here.
+  → *prices all render $0.00*, or *Fee and Net show —*
+- **Archived records come back by default.** Filter them out.
+  → *dozens of products you've never seen*
+- **`expand` caps at 4 levels**, and on a list call every path already starts
+  with `data.`. Count the dots when Stripe rejects one.
+- **Amounts are integer cents.** `$29.00` is `2900`. Everything crossing your
+  API is already in cents — don't convert.
+- **Stripe counts seconds since the epoch.** JS Dates want milliseconds.
+- **A refunded charge still reports its own status as `succeeded`.** Check the
+  refunded flag first, or nothing ever shows as Refunded.
+- **A payment link charge has no description.** The product name lives on the
+  Checkout Session that produced it; both reference the same payment intent.
+  Two list calls and a lookup table — not one call per row.
+  → *Item column shows —, and Sold stays 0*
+- **A payment link bills a Price, not a number.** If someone overrides the
+  amount, you need a price that matches it before you can create the link.
+
+## Checking your work
+
+The app is the test. Beyond that:
+
+- **Terminal** — log failures in your handler; Stripe's errors usually name the
+  parameter it didn't like
+- **Dashboard** — everything you create is real. Check
+  [products](https://dashboard.stripe.com/test/products) and
+  [payments](https://dashboard.stripe.com/test/payments)
+- **Straight at the API**, no UI in the way:
 
 ```bash
 curl -s localhost:5173/api/products | jq
 ```
 
-`npm run lint` reports about 17 unused-variable warnings on the untouched
-template — `stripe`, `LIMIT`, every mapper parameter. Nothing is broken; they're
-things waiting to be used. They disappear one by one as you implement, so the
-count dropping is a rough progress bar.
+`vite.config.js` and `stripe-api.js` are part of the Vite config, so **saving
+either restarts the server**. Give it a second, then refresh.
 
-## Rules of thumb
+`npm run lint` reports ~11 unused-variable warnings on the untouched template —
+`env`, `request`, and every stub's parameters, all waiting to be used. Nothing
+is broken. They disappear as you implement, so the count dropping is a rough
+progress bar.
 
-- **Amounts are integer cents.** `$29.00` is `2900`. Every amount crossing this
-  file is already in cents — don't convert.
-- **Stripe returns ids, not objects.** A charge's `balance_transaction`, a
-  product's `default_price` — all ids until you `expand` them. Most of the
-  "why is this blank?" moments come from here.
-- **Don't touch anything outside `stripe-api.js`.** The tables, the store and
-  the components are done. If a column is empty, the fix is in your mapper or
-  your call — never in the table.
-- **Don't fetch in a loop.** Anywhere you need two kinds of object, two list
-  calls and a lookup table beat one call per row.
-
-## Stuck
-
-Work backwards from the table. The Transactions table renders a Fee column, so
-`mapCharge` has to return `fee`, so the call feeding it has to fetch something
-that carries a fee. That chain — column, mapper, call — answers most of these.
-
-Then check the terminal. A thrown Stripe error is usually specific about which
-parameter it didn't like.
-
-The finished version is one command away:
+## Answers
 
 ```bash
-git diff main -- stripe-api.js     # the answers
-git checkout main                  # the working app
+git diff main -- stripe-api.js vite.config.js src/api/stripeApi.js
+git checkout main      # the finished app
 ```
